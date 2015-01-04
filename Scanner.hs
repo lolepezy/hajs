@@ -1,3 +1,6 @@
+module Scanner where 
+
+import Data
 
 data Token = Identifier String 
   | Constant
