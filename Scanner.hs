@@ -30,12 +30,18 @@ ident = do
 
  
 stringConst :: Parser TokenPos
-stringConst = do 
-  pos <- getPosition 
-  string "'"
-  s <- manyTill anyChar (try (string "'"))
-  return $ (SConstant s, pos)
-
-
+stringConst = do
+    pos <- getPosition
+    q <- oneOf "'\""
+    s <- many $ chars q
+    char q
+    return $ (SConstant s, pos)
+  where
+    chars q = (escaped q) <|> noneOf [q]
+    escaped q = char '\\' >> choice (zipWith escapedChar (codes q) (replacements q))
+    escapedChar code replacement = char code >> return replacement
+    codes q        = ['b',  'n',  'f',  'r',  't',  '\\', q]
+    replacements q = ['\b', '\n', '\f', '\r', '\t', '\\', q]
+ 
 
 
