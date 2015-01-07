@@ -5,7 +5,7 @@ data BoolExpr = BoolConst Bool
   | BoolBinaryOp BoolOp BoolExpr BoolExpr
   deriving (Show)
 
-data BoolBinaryOp = And | Or deriving (Show)
+data BoolOp = And | Or deriving (Show)
 
 data GenExpr = Var String 
   | FunCall [GenExpr]
@@ -14,10 +14,11 @@ data GenExpr = Var String
   | Neg GenExpr
   deriving (Show)
 
-data ConstValue = Integer | String
+data ConstValue = Integer | String deriving (Show)
 
 data Statement = Seq [Statement]
   | Assign String GenExpr
+  deriving (Show)
 
 
 
