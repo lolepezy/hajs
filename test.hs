@@ -9,6 +9,8 @@ main = do
 --  print $ testParse ident "1"
 --  print $ testParse ident "a1"
 --  print $ testParse ident "a a"
-  print $ testParse stringConst "'aa'"
-  print $ testParse stringConst "'a'a'"
+  print $ testParse stringConst ['\'', 'x', 'y', '\'']
+  print $ testParse stringConst ['\'', 'x', '\\', '\'', 'y', '\''] -- 'x\'y'
+  print $ testParse stringConst "\"xy\""
+  print $ testParse stringConst ("\"x" ++ ['\\', '"'] ++ "y\"")
 
