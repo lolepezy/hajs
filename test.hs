@@ -10,10 +10,6 @@ testParse parser string = parse parser "scanner" string
 --  print $ testParse ident "1"
 --  print $ testParse ident "a1"
 --  print $ testParse ident "a a"
---  print $ testParse stringConst ['\'', 'x', 'y', '\'']
---  print $ testParse stringConst ['\'', 'x', '\\', '\'', 'y', '\''] -- 'x\'y'
---  print $ testParse stringConst "\"xy\""
---  print $ testParse stringConst ("\"x" ++ ['\\', '"'] ++ "y\"")
 
 
 testScanner parser string token = TestCase $ assertEqual 
