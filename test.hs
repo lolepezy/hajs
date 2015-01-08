@@ -13,15 +13,18 @@ testParse parser string = parse parser "scanner" string
 
 
 testScanner parser string token = TestCase $ assertEqual 
-  ("Should get " ++ (show token) ++ " after parsing " ++ string) 
-    token (case (testParse parser string) of 
+  "Parsed the stuff wrong: " 
+   token (case (testParse parser string) of 
        Right (t, s) -> t
     )
 
 literalTest = TestList [testScanner stringConst "\"xy\"" (SConstant "xy"),
                         testScanner stringConst ("\"x" ++ ['\\', '"'] ++ "y\"") (SConstant "x\"y"), 
                         testScanner stringConst ['\'', 'x', 'y', '\''] (SConstant "xy"), 
-                        testScanner stringConst ['\'', 'x', '\\', '\'', 'y', '\''] (SConstant "x'y") 
+                        testScanner stringConst ['\'', 'x', '\\', '\'', 'y', '\''] (SConstant "x'y"), 
+                        testScanner intConst "1234" (IConstant 1234),
+                        testScanner intConst "-91" (IConstant $ -91), 
+                        testScanner intConst "+9" (IConstant $ 9) 
                        ]
 
 main = runTestTT literalTest
