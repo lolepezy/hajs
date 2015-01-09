@@ -12,6 +12,7 @@ data Token = Identifier String
   | Var
   | Function
   | If
+  | Else
   | While
   | Do
   | Return
@@ -73,7 +74,7 @@ primitives = parsePos $ choice $ map (\(ch, tok) -> char ch >> return tok) [
 
 reserved :: Parser TokenPos
 reserved = parsePos $ choice $ map (\(s, tok) -> string s >> return tok) [
-    ( "var", Var ), ( "function", Function ), ( "if", If ),
+    ( "var", Var ), ( "function", Function ), ( "if", If ), ("else", Else),
     ( "while", While ), ( "do", Do ), ( "return", Return )
   ]
 
