@@ -21,10 +21,16 @@ testScanner parser string token = TestCase $ assertEqual
 literalTest = TestList [testScanner stringConst "\"xy\"" (SConstant "xy"),
                         testScanner stringConst ("\"x" ++ ['\\', '"'] ++ "y\"") (SConstant "x\"y"), 
                         testScanner stringConst ['\'', 'x', 'y', '\''] (SConstant "xy"), 
-                        testScanner stringConst ['\'', 'x', '\\', '\'', 'y', '\''] (SConstant "x'y"), 
+                        testScanner stringConst ['\'', 'x', '\\', '\'', 'y', '\''] (SConstant "x'y"),
+ 
                         testScanner intConst "1234" (IConstant 1234),
                         testScanner intConst "-91" (IConstant $ -91), 
-                        testScanner intConst "+9" (IConstant $ 9) 
+                        testScanner intConst "+9" (IConstant $ 9),
+
+                        testScanner primitives "," Comma,
+                        testScanner primitives ";" Colon,
+                        testScanner primitives "." Dot,
+                        testScanner reserved "return" Return
                        ]
 
 main = runTestTT literalTest

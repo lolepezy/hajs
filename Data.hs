@@ -7,7 +7,7 @@ data BoolExpr = BoolConst Bool
 
 data BoolOp = And | Or deriving (Show)
 
-data GenExpr = Var String 
+data GenExpr = Variable String 
   | FunCall [GenExpr]
   | Const ConstValue
   | GenBinary GenExpr GenExpr
