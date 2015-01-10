@@ -5,6 +5,8 @@ import Data
 import Data.Char
 import Text.ParserCombinators.Parsec hiding (token, tokens)
 import Control.Applicative ((<*), (*>), (<$>), (<*>))
+
+
 data Token = Identifier String 
   | SConstant String
   | IConstant Integer
@@ -77,4 +79,17 @@ reserved = parsePos $ choice $ map (\(s, tok) -> string s >> return tok) [
     ( "var", Var ), ( "function", Function ), ( "if", If ), ("else", Else),
     ( "while", While ), ( "do", Do ), ( "return", Return )
   ]
+
+
+aToken :: Parser TokenPos
+aToken = choice 
+    [ primitives,
+      reserved,
+      intConst,
+      stringConst,
+      ident 
+    ]
+
+tokenStream :: Parser [TokenPos]
+tokenStream = spaces *> many (aToken <* spaces) 
 
