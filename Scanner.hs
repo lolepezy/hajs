@@ -57,10 +57,9 @@ stringConst = parsePos $ do
  
 
 intConst :: Parser TokenPos
-intConst = parsePos (minInt <|> plusInt <|> justDigits <?> "integer value")
+intConst = parsePos (minInt <|> justDigits <?> "integer value")
   where 
     minInt = (IConstant . negate . toInteger) <$> (char '-' *> many1 digit)
-    plusInt = (IConstant . toInteger) <$> (char '+' *> many1 digit)
     justDigits = (IConstant . toInteger) <$> many1 digit
     toInteger s = fromIntegral $ foldl (\a i -> a * 10 + digitToInt i) 0 s
     
@@ -83,10 +82,10 @@ reserved = parsePos $ choice $ map (\(s, tok) -> string s >> return tok) [
 
 aToken :: Parser TokenPos
 aToken = choice 
-    [ primitives,
-      reserved,
-      intConst,
-      stringConst,
+    [ try stringConst,
+      try reserved,
+      try intConst,
+      primitives,
       ident 
     ]
 
