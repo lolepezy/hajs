@@ -3,20 +3,23 @@ import Scanner
 import Text.ParserCombinators.Parsec
 import Test.HUnit
 
-testParse parser string = parse parser "scanner" string
+testParse parser = parse parser "scanner"
 
---main = do
---  print $ testParse ident "a"
---  print $ testParse ident "1"
---  print $ testParse ident "a1"
---  print $ testParse ident "a a"
+testScanner parser string token = TestCase $ assertBool 
+  ("Should get " ++ (show token) ++ " after parsing " ++ string)
+  (case testParse parser string of 
+     Right (tok, s) -> tok == token
+     Left(err) -> False 
+  )
+
+testScannerList parser string tokens = TestCase $ assertBool 
+  ("Should get " ++ (show tokens) ++ " after parsing " ++ string)
+  (case testParse parser string of 
+     Right ts@(_:_) -> (map fst ts) == tokens
+     Left(err) -> False 
+  )
 
 
-testScanner parser string token = TestCase $ assertEqual 
-  "Parsed the stuff wrong: " 
-   token (case (testParse parser string) of 
-       Right (t, s) -> t
-    )
 
 literalTest = TestList [testScanner stringConst "\"xy\"" (SConstant "xy"),
                         testScanner stringConst ("\"x" ++ ['\\', '"'] ++ "y\"") (SConstant "x\"y"), 
@@ -30,8 +33,13 @@ literalTest = TestList [testScanner stringConst "\"xy\"" (SConstant "xy"),
                         testScanner primitives "," Comma,
                         testScanner primitives ";" Colon,
                         testScanner primitives "." Dot,
-                        testScanner reserved "return" Return
+                        testScanner reserved "return" Return,
+
+                        testScannerList tokenStream "\"1234\".length+44-'zz'" 
+                          [SConstant "1234", Dot, Identifier "length", Plus, 
+                           IConstant 44, Minus, SConstant "zz1" ]
                        ]
 
-main = runTestTT literalTest
+main = do
+  runTestTT literalTest
 
