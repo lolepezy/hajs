@@ -1,4 +1,5 @@
 import Scanner
+import Parser
 
 import Text.ParserCombinators.Parsec
 import Test.HUnit
