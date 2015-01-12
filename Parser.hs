@@ -1,25 +1,43 @@
 module Parser where 
 
-import Text.ParserCombinators.Parsec hiding (token, tokens)
---import qualified Text.ParserCombinators
+import Text.ParserCombinators.Parsec
+import Text.ParserCombinators.Parsec.Expr
+import Text.ParserCombinators.Parsec.Language
+import qualified Text.ParserCombinators.Parsec.Token as Token
 
-{-
-expr    = buildExpressionParser table term
-        <?> "expression"
+languageDef = 
+  emptyDef { Token.commentStart    = "/*"
+		, Token.commentEnd      = "*/"
+		, Token.commentLine     = "//"
+		, Token.identStart      = letter
+		, Token.identLetter     = alphaNum
+		, Token.reservedNames   = [ "if"
+								  , "else"
+								  , "while"
+								  , "do"
+								  , "continue"
+								  , "true"
+								  , "false"
+								  , "function"
+								  , "var"
+								  ]
+		, Token.reservedOpNames = ["+", "-", "*", "/", "="
+								  , "<", ">", "&&", "||", "!", "."
+								  ]
+		}
 
-term    =  parens expr 
-        <|> natural
-        <?> "simple expression"
+lexer = Token.makeTokenParser languageDef
 
-table :: OperatorTable Char () Integer
-table   = [ [prefix "-" negate, prefix "+" id ]
-          , [postfix "++" (+1)]
-          , [binary "*" (*) AssocLeft, binary "/" (div) AssocLeft ]
-          , [binary "+" (+) AssocLeft, binary "-" (-)   AssocLeft ]
-          ]
-        where
-          binary  name fun assoc = Infix (do{ reservedOp name; return fun }) assoc
-          prefix  name fun       = Prefix (do{ reservedOp name; return fun })
-          postfix name fun       = Postfix (do{ reservedOp name; return fun })
 
--}
+identifier = Token.identifier lexer -- parses an identifier
+reserved   = Token.reserved   lexer -- parses a reserved name
+reservedOp = Token.reservedOp lexer -- parses an operator
+parens     = Token.parens     lexer -- parses surrounding parenthesis:
+integer    = Token.integer    lexer -- parses an integer
+semi       = Token.semi       lexer -- parses a semicolon
+whiteSpace = Token.whiteSpace lexer -- parses whitespace
+
+
+
+
+
