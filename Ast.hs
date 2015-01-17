@@ -1,21 +1,22 @@
 module Ast where 
 
-data BoolExpr = BoolTrue 
-  | BoolFalse
-  | Not BoolExpr
-  | And BoolExpr BoolExpr
-  | Or  BoolExpr BoolExpr
-  deriving (Show, Eq)
-
-data ArithmExpr = IntConst Integer
+data Expr = IntConst Integer
   | StringConst String
+  | BoolFalse
+  | BoolTrue
   | Var String
-  | Negate ArithmExpr
-  | Multiply ArithmExpr ArithmExpr
-  | Add      ArithmExpr ArithmExpr
-  | Divide   ArithmExpr ArithmExpr
-  | Subtract ArithmExpr ArithmExpr
+  | UnaryOp UOp Expr
+  | BinaryOp BOp Expr Expr
+  | RelOp ROp Expr Expr
   deriving (Show, Eq)
 
+data UOp = Negate | Not 
+  deriving (Show, Eq)
+
+data BOp = And | Or | Add | Multiply | Subtract | Divide 
+  deriving (Show, Eq)
+
+data ROp = Less | Greater | Equals | NotEquals | EEquals 
+  deriving (Show, Eq)
 
 

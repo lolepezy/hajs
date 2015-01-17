@@ -25,6 +25,8 @@ languageDef =
 								  , "var"
 								  , "null"
 								  , "this"
+								  , "false"
+								  , "true"
 								  ]
 		, Token.reservedOpNames = ["+", "-", "*", "/", "="
 								  , "<", ">", "==", "!="
@@ -42,36 +44,32 @@ parens     = Token.parens     lexer
 integer    = Token.integer    lexer
 semi       = Token.semi       lexer
 whiteSpace = Token.whiteSpace lexer
+symbol     = Token.symbol     lexer
 
 
-
-arithmOperators = [ [Prefix (reservedOp "-"  >> return (Negate  ))          ]
-                  , [Infix  (reservedOp "*"  >> return (Multiply)) AssocLeft]
-                  , [Infix  (reservedOp "/"  >> return (Divide  )) AssocLeft]
-                  , [Infix  (reservedOp "+"  >> return (Add     )) AssocLeft]
-                  , [Infix  (reservedOp "-"  >> return (Subtract)) AssocLeft]
-                  ]
+allOperators = [ [Prefix (reservedOp "-"   >> return (UnaryOp Negate) )          ]
+               , [Prefix (reservedOp "!"   >> return (UnaryOp Not ))          ]
+               , [Infix  (reservedOp "*"   >> return (BinaryOp Multiply)) AssocLeft]
+               , [Infix  (reservedOp "/"   >> return (BinaryOp Divide  )) AssocLeft]
+               , [Infix  (reservedOp "+"   >> return (BinaryOp Add     )) AssocLeft]
+               , [Infix  (reservedOp "-"   >> return (BinaryOp Subtract)) AssocLeft]
+               , [Infix  (reservedOp "&&"  >> return (BinaryOp And)) AssocLeft]
+               , [Infix  (reservedOp "||"  >> return (BinaryOp Or )) AssocLeft]
+               , [Infix  (reservedOp "<"   >> return (RelOp Less))      AssocLeft]
+               , [Infix  (reservedOp ">"   >> return (RelOp Greater))   AssocLeft]
+               , [Infix  (reservedOp "=="  >> return (RelOp Equals))    AssocLeft]
+               , [Infix  (reservedOp "===" >> return (RelOp EEquals))   AssocLeft]
+               , [Infix  (reservedOp "!="  >> return (RelOp NotEquals)) AssocLeft]
+               ]
  
-boolOperators = [ [Prefix (reservedOp "!"   >> return (Not))          ]
-                , [Infix  (reservedOp "&&"  >> return (And)) AssocLeft]
-                , [Infix  (reservedOp "||"  >> return (Or )) AssocLeft]
-                ]
 
+expr :: Parser Expr
+expr = buildExpressionParser allOperators exprTerm
 
-arithmExpr :: Parser ArithmExpr
-arithmExpr = buildExpressionParser arithmOperators arithmTerm
-
-boolExpr :: Parser BoolExpr
-boolExpr = buildExpressionParser boolOperators boolTerm
-
-arithmTerm = parens arithmExpr 
+exprTerm = parens expr 
+         <|> (try (reserved "false") >> return BoolFalse)
+         <|> (try (reserved "true" ) >> return BoolTrue)
          <|> liftM IntConst integer
          <|> liftM Var identifier
          <?> "simple expression"
-
-
-boolTerm = parens boolExpr 
-       <|> (string "false" >> return BoolFalse)
-       <|> (string "true"  >> return BoolTrue)
-       <?> "boolean expression"
 

@@ -9,7 +9,8 @@ literalTest = TestList [
                        ]
 
 main = do
-  print $ testParse arithmExpr "1+2" 
-  print $ testParse arithmExpr "(1+2) / a" 
+  print $ testParse expr "1+ -2" 
+  print $ testParse expr "(1+2-z) / a" 
+  print $ testParse expr "true1" 
 -- runTestTT literalTest
 
