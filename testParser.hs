@@ -1,3 +1,4 @@
+import Ast
 import Parser
 
 import Text.ParserCombinators.Parsec
@@ -8,9 +9,18 @@ testParse parser = parse parser "parser"
 literalTest = TestList [
                        ]
 
+refTest :: Parser Expr
+refTest = do 
+  i <- expr
+  dr <- (dotExpr i <|> propRefExpr i)
+  return dr
+
 main = do
-  print $ testParse expr "1+ -2" 
+  print $ testParse expr "1+ -2" 		
   print $ testParse expr "(1+2-z) / a" 
-  print $ testParse expr "true1" 
+--  print $ testParse expr "t.x + 2" 
+
+  print $ testParse refTest "(1+x).a" 
+  print $ testParse refTest "(1+x)[a*2]" 
 -- runTestTT literalTest
 

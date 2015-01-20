@@ -8,6 +8,8 @@ data Expr = IntConst Integer
   | UnaryOp UOp Expr
   | BinaryOp BOp Expr Expr
   | RelOp ROp Expr Expr
+  | DotRef Expr String
+  | PropRef Expr Expr
   deriving (Show, Eq)
 
 data UOp = Negate | Not 

@@ -5,6 +5,7 @@ import Text.ParserCombinators.Parsec
 import Text.ParserCombinators.Parsec.Expr
 import Text.ParserCombinators.Parsec.Language
 import qualified Text.ParserCombinators.Parsec.Token as Token
+import Control.Applicative ((<*), (*>), (<$>), (<*>))
 
 import Ast
 
@@ -27,6 +28,8 @@ languageDef =
 								  , "this"
 								  , "false"
 								  , "true"
+								  , "new"
+								  , "this"
 								  ]
 		, Token.reservedOpNames = ["+", "-", "*", "/", "="
 								  , "<", ">", "==", "!="
@@ -45,6 +48,7 @@ integer    = Token.integer    lexer
 semi       = Token.semi       lexer
 whiteSpace = Token.whiteSpace lexer
 symbol     = Token.symbol     lexer
+brackets   = Token.brackets   lexer
 
 
 allOperators = [ [Prefix (reservedOp "-"   >> return (UnaryOp Negate) )          ]
@@ -66,10 +70,21 @@ allOperators = [ [Prefix (reservedOp "-"   >> return (UnaryOp Negate) )         
 expr :: Parser Expr
 expr = buildExpressionParser allOperators exprTerm
 
+exprTerm :: Parser Expr
 exprTerm = parens expr 
          <|> (try (reserved "false") >> return BoolFalse)
          <|> (try (reserved "true" ) >> return BoolTrue)
          <|> liftM IntConst integer
          <|> liftM Var identifier
          <?> "simple expression"
+
+
+dotExpr :: Expr -> Parser Expr
+dotExpr e = (reservedOp "." >> (liftM (DotRef e) identifier)) <?> "object.property"
+
+propRefExpr :: Expr -> Parser Expr
+propRefExpr e = brackets (liftM (PropRef e) expr) <?> "object[property]"
+
+
+
 
