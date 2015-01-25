@@ -12,7 +12,7 @@ literalTest = TestList [
 refTest :: Parser Expr
 refTest = do 
   i <- expr
-  dr <- (dotExpr i <|> propRefExpr i)
+  dr <- dotExpr i <|> propRefExpr i <|> funcAppExpr i
   return dr
 
 main = do
@@ -22,5 +22,6 @@ main = do
 
   print $ testParse refTest "(1+x).a" 
   print $ testParse refTest "(1+x)[a*2]" 
+  print $ testParse refTest "(1+x)(z, false)" 
 -- runTestTT literalTest
 

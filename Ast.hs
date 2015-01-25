@@ -4,12 +4,16 @@ data Expr = IntConst Integer
   | StringConst String
   | BoolFalse
   | BoolTrue
+  | Null
+  | ThisRef
   | Var String
   | UnaryOp UOp Expr
   | BinaryOp BOp Expr Expr
   | RelOp ROp Expr Expr
   | DotRef Expr String
   | PropRef Expr Expr
+  | FuncApp Expr [Expr]
+  | NewOp Expr [Expr]
   deriving (Show, Eq)
 
 data UOp = Negate | Not 
