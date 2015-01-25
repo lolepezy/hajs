@@ -49,6 +49,7 @@ semi       = Token.semi       lexer
 whiteSpace = Token.whiteSpace lexer
 symbol     = Token.symbol     lexer
 brackets   = Token.brackets   lexer
+comma     = Token.comma       lexer
 
 
 allOperators = [ [Prefix (reservedOp "-"   >> return (UnaryOp Negate) )          ]
@@ -78,13 +79,43 @@ exprTerm = parens expr
          <|> liftM Var identifier
          <?> "simple expression"
 
+primExpr :: Parser Expr
+primExpr = simpleExpr <|> funcExpr <|> objLiteral
+
+simpleExpression = (reserved "this" >> return ThisRef)
+               <|> (reserved "null" >> return Null)  
+               <|> (try (reserved "false") >> return BoolFalse)
+               <|> (try (reserved "true" ) >> return BoolTrue)
+               <|> liftM IntConst integer
+               <|> liftM Var identifier
+               <|> arrayLiteral
+
+
+
 
 dotExpr :: Expr -> Parser Expr
-dotExpr e = (reservedOp "." >> (liftM (DotRef e) identifier)) <?> "object.property"
+dotExpr e = (reservedOp "." >> liftM (DotRef e) identifier) <?> "object.property"
 
 propRefExpr :: Expr -> Parser Expr
 propRefExpr e = brackets (liftM (PropRef e) expr) <?> "object[property]"
 
+funcAppExpr :: Expr -> Parser Expr
+funcAppExpr e = parens (liftM (FuncApp e) (sepBy expr comma)) <?> "function application"
+
+
+objLiteral :: Parser Expr
+objLiteral = liftM Var identifier
+
+
+arrayLiteral :: Parser Expr
+arrayLiteral = liftM Var identifier
+
+
+simpleExpr :: Parser Expr
+simpleExpr = objLiteral
+
+funcExpr :: Parser Expr
+funcExpr = objLiteral
 
 
 
