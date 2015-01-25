@@ -14,6 +14,7 @@ data Expr = IntConst Integer
   | PropRef Expr Expr
   | FuncApp Expr [Expr]
   | NewOp Expr [Expr]
+  | Object [(Expr, Expr)]
   deriving (Show, Eq)
 
 data UOp = Negate | Not 

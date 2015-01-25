@@ -1,6 +1,6 @@
 module Scanner where 
 
-import Data
+import Data.List
 
 import Data.Char
 import Text.ParserCombinators.Parsec hiding (token, tokens)

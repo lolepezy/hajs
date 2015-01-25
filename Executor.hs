@@ -1,12 +1,12 @@
 module Executor where
 
-data Program = ()
+data Program
 
-data Value = String
+data Value = SVal String | IVal Int
 
-data Var = (String, Value)
+data Var = String Value
 
-data Context = {
+data Context = Context {
   vars :: [Var]
 }
 

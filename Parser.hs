@@ -11,31 +11,31 @@ import Ast
 
 languageDef = 
   emptyDef { Token.commentStart = "/*"
-		, Token.commentEnd      = "*/"
-		, Token.commentLine     = "//"
-		, Token.identStart      = letter
-		, Token.identLetter     = alphaNum
-		, Token.reservedNames   = [ "if"
-								  , "else"
-								  , "while"
-								  , "do"
-								  , "continue"
-								  , "true"
-								  , "false"
-								  , "function"
-								  , "var"
-								  , "null"
-								  , "this"
-								  , "false"
-								  , "true"
-								  , "new"
-								  , "this"
-								  ]
-		, Token.reservedOpNames = ["+", "-", "*", "/", "="
-								  , "<", ">", "==", "!="
+                , Token.commentEnd      = "*/"
+                , Token.commentLine     = "//"
+                , Token.identStart      = letter
+                , Token.identLetter     = alphaNum
+                , Token.reservedNames   = [ "if"
+                                          , "else"
+                                          , "while"
+                                          , "do"
+                                          , "continue"
+                                          , "true"
+                                          , "false"
+                                          , "function"
+                                          , "var"
+                                          , "null"
+                                          , "this"
+                                          , "false"
+                                                                  , "true"
+                                                                  , "new"
+                                                                  , "this"
+                                                                  ]
+                , Token.reservedOpNames = ["+", "-", "*", "/", "="
+                                                                  , "<", ">", "==", "!="
                                   , "&&", "||", "!", "."
-								  ]
-		}
+                                                                  ]
+                }
 
 lexer = Token.makeTokenParser languageDef
 
@@ -49,7 +49,9 @@ semi       = Token.semi       lexer
 whiteSpace = Token.whiteSpace lexer
 symbol     = Token.symbol     lexer
 brackets   = Token.brackets   lexer
-comma     = Token.comma       lexer
+braces     = Token.braces     lexer
+comma      = Token.comma      lexer
+colon      = Token.colon      lexer
 
 
 allOperators = [ [Prefix (reservedOp "-"   >> return (UnaryOp Negate) )          ]
@@ -91,8 +93,6 @@ simpleExpression = (reserved "this" >> return ThisRef)
                <|> arrayLiteral
 
 
-
-
 dotExpr :: Expr -> Parser Expr
 dotExpr e = (reservedOp "." >> liftM (DotRef e) identifier) <?> "object.property"
 
@@ -102,14 +102,28 @@ propRefExpr e = brackets (liftM (PropRef e) expr) <?> "object[property]"
 funcAppExpr :: Expr -> Parser Expr
 funcAppExpr e = parens (liftM (FuncApp e) (sepBy expr comma)) <?> "function application"
 
-
 objLiteral :: Parser Expr
-objLiteral = liftM Var identifier
+objLiteral = braces (liftM Object (sepEndBy (do 
+      prop <- stringLiteral <|> liftM Var identifier 
+      colon 
+      val <- expr
+      return (prop, val)) comma)) <?> "object literal"
 
+stringLiteral :: Parser Expr
+stringLiteral = do
+    q <- oneOf "'\""
+    s <- many $ chars q
+    char q <?> "closing quote"
+    return $ StringConst s
+  where
+    chars q = escaped q <|> noneOf [q]
+    escaped q = char '\\' >> choice (zipWith escapedChar (codes q) (replacements q))
+    escapedChar code replacement = char code >> return replacement
+    codes q        = ['b',  'n',  'f',  'r',  't',  '\\', q]
+    replacements q = ['\b', '\n', '\f', '\r', '\t', '\\', q]
 
 arrayLiteral :: Parser Expr
 arrayLiteral = liftM Var identifier
-
 
 simpleExpr :: Parser Expr
 simpleExpr = objLiteral
