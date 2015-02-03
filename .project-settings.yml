@@ -13,3 +13,4 @@ extra-packages: ''
 ghc-args: []
 excluded-modules:
 - Setup.hs
+- testScanner.hs

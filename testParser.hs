@@ -4,11 +4,28 @@ import Parser
 import Text.ParserCombinators.Parsec
 import Test.HUnit
 
-testParse parser = parse parser "parser"
+testParse parser = parse parser "scanner"
 
-literalTest = TestList [
+testParser parser string expression = TestCase $ assertBool 
+  ("Should get " ++ show expression ++ " after parsing " ++ string ++ " but was \n" ++ show parseResult)
+  (case parseResult of
+     Right (tok, s) -> tok == expression
+     Left err -> False
+  )
+  where parseResult = testParse parser string
+
+
+literalTest = TestList [{-testParser expr "\"xy\"" (StringConst "xy"),
+                        testParser expr ("\"x" ++ "\\\"" ++ "y\"") (StringConst "x\"y"), 
+                        testParser expr "'xy'" (StringConst "xy"), 
+                        testParser expr "'x\\'y'" (StringConst "x'y"),
+                        testParser expr "1234" (IntConst 1234),
+                        testParser expr "-91" (IntConst $ -91)-}
                        ]
 
+main = runTestTT literalTest
+
+{-
 refTest :: Parser Expr
 refTest = do 
   i <- expr
@@ -26,4 +43,4 @@ main = do
 
   print $ testParse objLiteral "{k : (1+x), 'qq' : 15 }" 
 -- runTestTT literalTest
-
+-}

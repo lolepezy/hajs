@@ -3,25 +3,28 @@ module Ast where
 
 import Text.ParserCombinators.Parsec
 
-data ExprPos e where 
-    Ast :: e -> SourcePos -> ExprPos e
+data ExprPos where 
+    MkExprPos :: Expr -> SourcePos -> ExprPos
     deriving (Show, Eq)
 
-data Expr = IntConst Integer SourcePos
-  | StringConst String SourcePos
-  | BoolFalse SourcePos
-  | BoolTrue SourcePos
-  | Null SourcePos
-  | ThisRef SourcePos
-  | Var String SourcePos
-  | UnaryOp UOp Expr SourcePos
-  | BinaryOp BOp Expr Expr SourcePos
-  | RelOp ROp Expr Expr SourcePos
-  | DotRef Expr String SourcePos
-  | PropRef Expr Expr SourcePos
-  | FuncApp Expr [Expr] SourcePos
-  | NewOp Expr [Expr] SourcePos
-  | Object [(Expr, Expr)] SourcePos
+getExpr :: ExprPos -> Expr
+getExpr (MkExprPos e _) = e
+
+data Expr = IntConst Integer
+  | StringConst String
+  | BoolFalse
+  | BoolTrue
+  | Null
+  | ThisRef
+  | Var String
+  | UnaryOp UOp Expr
+  | BinaryOp BOp Expr Expr
+  | RelOp ROp Expr Expr
+  | DotRef Expr String
+  | PropRef Expr Expr
+  | FuncApp Expr [Expr]
+  | NewOp Expr [Expr]
+  | Object [(Expr, Expr)]
   deriving (Show, Eq)
 
 data UOp = Negate | Not 

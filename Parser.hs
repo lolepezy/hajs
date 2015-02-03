@@ -66,19 +66,24 @@ allOperators = [ [prefOp "-"   (UnaryOp Negate)            ]
                , [infOp  "===" (RelOp EEquals)  AssocLeft]
                , [infOp  "!="  (RelOp NotEquals)  AssocLeft]
                ]
-               where prefOp op f = Prefix ( do { pos <- getPosition; reservedOp op; return (\e -> f e pos) } <?> "prefix operator")
-                     infOp op f accoc = Infix ( do { pos <- getPosition; reservedOp op; return (\e1 e2 -> f e1 e2 pos) } <?> "infix operator") accoc
+               where prefOp op f = Prefix ( do { pos <- getPosition; reservedOp op; return (\e -> MkExprPos (f (getExpr e)) pos) } <?> "prefix operator")
+                     infOp op f accoc = Infix ( do
+                                                   pos <- getPosition 
+                                                   reservedOp op 
+                                                   return (\e1 e2 -> MkExprPos (f (getExpr e1) (getExpr e2)) pos) <?> "infix operator") accoc
 
 
 -- some utilities
-withPos constructor parser = do { pos <- getPosition; e <- parser; return $ constructor e pos }
-withPos0 constructor parser = do { pos <- getPosition; parser; return $ constructor pos }
+withPos constructor parser = do { pos <- getPosition; e <- parser; return $ MkExprPos (constructor e) pos }
+withPosP constructor parser = do { pos <- getPosition; e <- parser; return $ MkExprPos (constructor (getExpr e)) pos }
+withPosL constructor parser = do { pos <- getPosition; es <- parser; return $ MkExprPos (constructor (map getExpr es)) pos }
+withPos0 constructor parser = do { pos <- getPosition; parser; return $ MkExprPos constructor pos }
 
 
-expr :: Parser Expr
+expr :: Parser ExprPos
 expr = buildExpressionParser allOperators exprTerm
 
-exprTerm :: Parser Expr
+exprTerm :: Parser ExprPos
 exprTerm = parens expr
          <|> withPos0 BoolFalse (try(reserved "false"))
          <|> withPos0 BoolTrue (try(reserved "true"))
@@ -87,7 +92,7 @@ exprTerm = parens expr
          <?> "simple expression"
 
 
-primExpr :: Parser Expr
+primExpr :: Parser ExprPos
 primExpr = simpleExpr <|> funcExpr <|> objLiteral
 
 simpleExpression = withPos0 ThisRef (reserved "this")
@@ -99,29 +104,29 @@ simpleExpression = withPos0 ThisRef (reserved "this")
                <|> arrayLiteral
 
 
-dotExpr :: Expr -> Parser Expr
-dotExpr e = withPos (DotRef e) (reservedOp "." >> identifier) <?> "object.property"
+dotExpr :: ExprPos -> Parser ExprPos
+dotExpr e = withPos (DotRef (getExpr e)) (reservedOp "." >> identifier) <?> "object.property"
 
-propRefExpr :: Expr -> Parser Expr
-propRefExpr e = withPos (PropRef e) (brackets expr) <?> "object[property]"
+propRefExpr :: ExprPos -> Parser ExprPos
+propRefExpr e = withPosP (PropRef (getExpr e)) (brackets expr) <?> "object[property]"
 
-funcAppExpr :: Expr -> Parser Expr
-funcAppExpr e = withPos (FuncApp e) (parens (sepBy expr comma)) <?> "function application"
+funcAppExpr :: ExprPos -> Parser ExprPos
+funcAppExpr e = withPosL (FuncApp (getExpr e)) (parens (sepBy expr comma)) <?> "function application"
 
-objLiteral :: Parser Expr
+objLiteral :: Parser ExprPos
 objLiteral = withPos Object (braces (sepEndBy (do
       prop <- stringLiteral <|> withPos Var identifier
       colon
       val <- expr
-      return (prop, val)) comma)) <?> "object literal"
+      return (getExpr prop, getExpr val)) comma)) <?> "object literal"
 
-stringLiteral :: Parser Expr
+stringLiteral :: Parser ExprPos
 stringLiteral = do
     pos <- getPosition
     q <- oneOf "'\""
     s <- many $ chars q
     char q <?> "closing quote"
-    return $ StringConst s pos
+    return $ MkExprPos (StringConst s) pos
   where
     chars q = escaped q <|> noneOf [q]
     escaped q = char '\\' >> choice (zipWith escapedChar (codes q) (replacements q))
@@ -129,13 +134,13 @@ stringLiteral = do
     codes q        = ['b',  'n',  'f',  'r',  't',  '\\', q]
     replacements q = ['\b', '\n', '\f', '\r', '\t', '\\', q]
 
-arrayLiteral :: Parser Expr
+arrayLiteral :: Parser ExprPos
 arrayLiteral = withPos Var identifier
 
-simpleExpr :: Parser Expr
+simpleExpr :: Parser ExprPos
 simpleExpr = objLiteral
 
-funcExpr :: Parser Expr
+funcExpr :: Parser ExprPos
 funcExpr = objLiteral
 
 
