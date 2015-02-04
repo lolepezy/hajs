@@ -75,10 +75,9 @@ allOperators = [ [prefOp "-"   (UnaryOp Negate)            ]
 
 -- some utilities
 withPos constructor parser = do { pos <- getPosition; e <- parser; return $ MkExprPos (constructor e) pos }
-withPosP constructor parser = do { pos <- getPosition; e <- parser; return $ MkExprPos (constructor (getExpr e)) pos }
-withPosL constructor parser = do { pos <- getPosition; es <- parser; return $ MkExprPos (constructor (map getExpr es)) pos }
-withPos0 constructor parser = do { pos <- getPosition; parser; return $ MkExprPos constructor pos }
-
+withPosP constructor = withPos (constructor . getExpr)
+withPosL constructor = withPos (constructor . (map getExpr))
+withPos0 constructor= withPos (\e -> constructor)
 
 expr :: Parser ExprPos
 expr = buildExpressionParser allOperators exprTerm
