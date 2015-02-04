@@ -66,15 +66,15 @@ allOperators = [ [prefOp "-"   (UnaryOp Negate)            ]
                , [infOp  "===" (RelOp EEquals)  AssocLeft]
                , [infOp  "!="  (RelOp NotEquals)  AssocLeft]
                ]
-               where prefOp op f = Prefix ( do { pos <- getPosition; reservedOp op; return (\e -> MkExprPos (f (getExpr e)) pos) } <?> "prefix operator")
+               where prefOp op f = Prefix ( do { pos <- getPosition; reservedOp op; return (\e -> ExprPos (f (getExpr e)) pos) } <?> "prefix operator")
                      infOp op f accoc = Infix ( do
                                                    pos <- getPosition 
                                                    reservedOp op 
-                                                   return (\e1 e2 -> MkExprPos (f (getExpr e1) (getExpr e2)) pos) <?> "infix operator") accoc
+                                                   return (\e1 e2 -> ExprPos (f (getExpr e1) (getExpr e2)) pos) <?> "infix operator") accoc
 
 
 -- some utilities
-withPos constructor parser = do { pos <- getPosition; e <- parser; return $ MkExprPos (constructor e) pos }
+withPos constructor parser = do { pos <- getPosition; e <- parser; return $ ExprPos (constructor e) pos }
 withPosP constructor = withPos (constructor . getExpr)
 withPosL constructor = withPos (constructor . (map getExpr))
 withPos0 constructor= withPos (\e -> constructor)
@@ -88,6 +88,7 @@ exprTerm = parens expr
          <|> withPos0 BoolTrue (try(reserved "true"))
          <|> withPos IntConst integer
          <|> withPos Var identifier
+         <|> stringLiteral
          <?> "simple expression"
 
 
@@ -125,7 +126,7 @@ stringLiteral = do
     q <- oneOf "'\""
     s <- many $ chars q
     char q <?> "closing quote"
-    return $ MkExprPos (StringConst s) pos
+    return $ ExprPos (StringConst s) pos
   where
     chars q = escaped q <|> noneOf [q]
     escaped q = char '\\' >> choice (zipWith escapedChar (codes q) (replacements q))

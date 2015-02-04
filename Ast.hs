@@ -3,12 +3,11 @@ module Ast where
 
 import Text.ParserCombinators.Parsec
 
-data ExprPos where 
-    MkExprPos :: Expr -> SourcePos -> ExprPos
-    deriving (Show, Eq)
+data ExprPos = ExprPos Expr SourcePos 
+  deriving (Show, Eq)
 
 getExpr :: ExprPos -> Expr
-getExpr (MkExprPos e _) = e
+getExpr (ExprPos e _) = e
 
 data Expr = IntConst Integer
   | StringConst String
