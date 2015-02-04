@@ -23,5 +23,10 @@ literalsTest = TestList [testParser expr "\"xy\"" (StringConst "xy"),
                         testParser expr "-91" (UnaryOp Negate (IntConst 91))
                        ]
 
-main = runTestTT literalsTest
+arithmTest = TestList [testParser expr "x+1" (BinaryOp Add (Var "x") (IntConst 1) ),
+                       testParser expr "x*y+2-q" (BinaryOp Subtract (BinaryOp Add (BinaryOp Multiply (Var "x") (Var "y")) (IntConst 2)) (Var "q")),
+                       testParser expr "x&&y || !z" (BinaryOp Or (BinaryOp And (Var "x") (Var "y")) (UnaryOp Not (Var "z")))
+                       ]
+
+main = runTestTT $ TestList [literalsTest, arithmTest]
 
