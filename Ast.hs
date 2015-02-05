@@ -36,3 +36,13 @@ data ROp = Less | Greater | Equals | NotEquals | EEquals
   deriving (Show, Eq)
 
 
+{- Statements -}
+
+data LExpr = LVar String
+  | LPropRef Expr Expr
+  | LDotRef Expr String
+
+data Statement = Block [Statement]
+  | Assign LExpr
+  | If Expr Statement (Maybe Statement)
+  | While Expr Statement 
