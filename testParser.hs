@@ -1,5 +1,5 @@
 import Ast
-import Parser
+import Expressions
 
 import Text.ParserCombinators.Parsec
 import Test.HUnit
@@ -9,7 +9,7 @@ testParse parser = parse parser "parser"
 testParser parser string expression = TestCase $ assertBool 
   ("Should get " ++ show expression ++ " after parsing " ++ string ++ " but was \n" ++ show parseResult)
   (case parseResult of
-     Right (ExprPos tok pos) -> tok == expression
+     Right (WithPos tok pos) -> tok == expression
      Left err -> False
   )
   where parseResult = testParse parser string

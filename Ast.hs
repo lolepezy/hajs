@@ -3,12 +3,6 @@ module Ast where
 
 import Text.ParserCombinators.Parsec
 
-data ExprPos = ExprPos Expr SourcePos 
-  deriving (Show, Eq)
-
-getExpr :: ExprPos -> Expr
-getExpr (ExprPos e _) = e
-
 data Expr = IntConst Integer
   | StringConst String
   | BoolFalse
@@ -37,7 +31,6 @@ data ROp = Less | Greater | Equals | NotEquals | EEquals
 
 
 {- Statements -}
-
 data LExpr = LVar String
   | LPropRef Expr Expr
   | LDotRef Expr String
@@ -46,3 +39,20 @@ data Statement = Block [Statement]
   | Assign LExpr
   | If Expr Statement (Maybe Statement)
   | While Expr Statement 
+
+
+data WithPos e = WithPos e SourcePos 
+  deriving (Show, Eq)
+
+term :: WithPos e -> e
+term (WithPos e _) = e
+
+withPos :: (a -> b) -> Parser a -> Parser (WithPos b)
+withPos constructor parser = do 
+    pos <- getPosition 
+    ex <- parser 
+    return $ WithPos (constructor ex) pos
+
+withPosP constructor = withPos (constructor . term)
+withPosL constructor = withPos (constructor . (map term))
+withPos0 constructor = withPos (\e -> constructor)
