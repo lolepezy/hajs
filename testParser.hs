@@ -28,5 +28,14 @@ arithmTest = TestList [testParser expr "x+1" (BinaryOp Add (Var "x") (IntConst 1
                        testParser expr "x&&y || !z" (BinaryOp Or (BinaryOp And (Var "x") (Var "y")) (UnaryOp Not (Var "z")))
                        ]
 
-main = runTestTT $ TestList [literalsTest, arithmTest]
+objLitTest = TestList [ testParser expr "{a:x}" $ Object [("a", Var "x")],
+                        let objB = Object [("c", (BinaryOp Add (Var "d") (IntConst 2) ))]
+                            in testParser expr "{a : x, b : {c : d + 2}}" (Object [("a", Var "x"), ("b", objB )])
+                      ]
+
+arrayLitTest = TestList [ testParser expr "[1, a, qq*3]" $ Array [IntConst 1, Var "a", (BinaryOp Multiply (Var "qq") (IntConst 3))]
+                        ]
+
+
+main = runTestTT $ TestList [literalsTest, arithmTest, objLitTest, arrayLitTest]
 

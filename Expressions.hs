@@ -67,10 +67,10 @@ allOperators = [ [prefOp "-"   (UnaryOp Negate)            ]
                , [infOp  "!="  (RelOp NotEquals)  AssocLeft]
                ]
                where prefOp op f = Prefix ( do { pos <- getPosition; reservedOp op; return (\e -> WithPos (f (term e)) pos) } <?> "prefix operator")
-                     infOp op f accoc = Infix ( do
-                                                   pos <- getPosition
-                                                   reservedOp op
-                                                   return (\e1 e2 -> WithPos (f (term e1) (term e2)) pos) <?> "infix operator") accoc
+                     infOp op f  = Infix ( do 
+                         pos <- getPosition
+                         reservedOp op
+                         return (\e1 e2 -> WithPos (f (term e1) (term e2)) pos) <?> "infix operator")
 
 
 expr :: Parser (WithPos Expr)
@@ -82,12 +82,10 @@ exprTerm = parens expr
          <|> withPos0 BoolTrue (try(reserved "true"))
          <|> withPos IntConst integer
          <|> withPos Var identifier
-         <|> stringLiteral
+         <|> withPos StringConst stringLiteral
+         <|> objLiteral
+         <|> arrayLiteral
          <?> "simple expression"
-
-
-primExpr :: Parser (WithPos Expr)
-primExpr = simpleExpr <|> funcExpr <|> objLiteral
 
 simpleExpression = withPos0 ThisRef (reserved "this")
                <|> withPos0 Null (reserved "null")
@@ -108,28 +106,29 @@ funcAppExpr :: (WithPos Expr) -> Parser (WithPos Expr)
 funcAppExpr e = withPosL (FuncApp (term e)) (parens (sepBy expr comma)) <?> "function application"
 
 objLiteral :: Parser (WithPos Expr)
-objLiteral = withPos Object (braces (sepEndBy (do
-      prop <- stringLiteral <|> withPos Var identifier
+objLiteral = let 
+    obj = braces (sepEndBy (do
+      prop <- stringLiteral <|> identifier
       colon
       val <- expr
-      return (term prop, term val)) comma)) <?> "object literal"
+      return (prop, term val)) comma)
+    in withPos Object obj <?> "object literal"
 
-stringLiteral :: Parser (WithPos Expr)
+arrayLiteral :: Parser (WithPos Expr)
+arrayLiteral = withPosL Array (brackets (sepBy expr comma)) <?> "array literal"
+
+stringLiteral :: Parser String
 stringLiteral = do
-    pos <- getPosition
     q <- oneOf "'\""
     s <- many $ chars q
     char q <?> "closing quote"
-    return $ WithPos (StringConst s) pos
+    return s
   where
     chars q = escaped q <|> noneOf [q]
     escaped q = char '\\' >> choice (zipWith escapedChar (codes q) (replacements q))
     escapedChar code replacement = char code >> return replacement
     codes q        = ['b',  'n',  'f',  'r',  't',  '\\', q]
     replacements q = ['\b', '\n', '\f', '\r', '\t', '\\', q]
-
-arrayLiteral :: Parser (WithPos Expr)
-arrayLiteral = withPos Var identifier
 
 simpleExpr :: Parser (WithPos Expr)
 simpleExpr = objLiteral

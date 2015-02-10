@@ -17,7 +17,8 @@ data Expr = IntConst Integer
   | PropRef Expr Expr
   | FuncApp Expr [Expr]
   | NewOp Expr [Expr]
-  | Object [(Expr, Expr)]
+  | Object [(String, Expr)]
+  | Array  [Expr]
   deriving (Show, Eq)
 
 data UOp = Negate | Not 
@@ -40,14 +41,17 @@ data Statement = Block [Statement]
   | If Expr Statement (Maybe Statement)
   | While Expr Statement 
 
+class Positionable p where
+  term :: WithPos p -> p
+  term (WithPos p _) = p
 
-data WithPos e = WithPos e SourcePos 
+instance Positionable Expr
+instance Positionable Statement
+
+data (Positionable e) => WithPos e = WithPos e SourcePos
   deriving (Show, Eq)
 
-term :: WithPos e -> e
-term (WithPos e _) = e
-
-withPos :: (a -> b) -> Parser a -> Parser (WithPos b)
+withPos :: (Positionable b) => (a -> b) -> Parser a -> Parser (WithPos b)
 withPos constructor parser = do 
     pos <- getPosition 
     ex <- parser 
