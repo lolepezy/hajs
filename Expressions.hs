@@ -31,6 +31,7 @@ languageDef =
                                           , "true"
                                           , "new"
                                           , "this"
+                                          , "var"                                          
                                          ]
                 , Token.reservedOpNames = ["+", "-", "*", "/", "="
                                                                   , "<", ">", "==", "!="
@@ -115,7 +116,7 @@ objLiteral = let
     in withPos Object obj <?> "object literal"
 
 arrayLiteral :: Parser (WithPos Expr)
-arrayLiteral = withPosL Array (brackets (sepBy expr comma)) <?> "array literal"
+arrayLiteral = withPosL Array (brackets (expr `sepBy` comma)) <?> "array literal"
 
 stringLiteral :: Parser String
 stringLiteral = do
@@ -133,7 +134,7 @@ stringLiteral = do
 simpleExpr :: Parser (WithPos Expr)
 simpleExpr = objLiteral
 
-funcExpr :: Parser (WithPos Expr)
-funcExpr = objLiteral
-
+withSpaces :: Parser e -> Parser e
+withSpaces parser = whitespaces *> parser <* whitespaces 
+  where whitespaces = many $ oneOf " \t"
 

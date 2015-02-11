@@ -35,11 +35,14 @@ data ROp = Less | Greater | Equals | NotEquals | EEquals
 data LExpr = LVar String
   | LPropRef Expr Expr
   | LDotRef Expr String
+  deriving (Eq, Show)
 
 data Statement = Block [Statement]
-  | Assign LExpr
+  | Assign LExpr Expr 
+  | VarDecl String
   | If Expr Statement (Maybe Statement)
-  | While Expr Statement 
+  | While Expr Statement
+  deriving (Eq, Show)  
 
 class Positionable p where
   term :: WithPos p -> p
